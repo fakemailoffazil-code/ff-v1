@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FF Access Token Generator</title>
+<style>
+:root{
+  --bg:#0d0608;--bg2:#140a0c;--surf:#1a0d10;--surf2:#221215;
+  --line:#2e1419;--acc:#e03030;--acc2:#b82020;
+  --tx:#f0ebe5;--tx2:#b89ca0;--tx3:#7a5560;
+  --ok:#5cb87a;--bad:#ff6060;
+  --r:12px;--ff:"Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:var(--ff);font-size:15px;min-height:100vh}
+a{color:inherit;text-decoration:none}
+
+/* header */
+#hdr{background:rgba(13,6,8,.95);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50;backdrop-filter:blur(10px)}
+.hbar{max-width:680px;margin:0 auto;padding:0 16px;height:52px;display:flex;align-items:center;gap:10px}
+.logo{font-size:19px;font-weight:700}.logo span{color:var(--acc)}
+.sp{flex:1}
+.hbadge{font-size:11px;background:var(--surf2);border:1px solid var(--line);color:var(--tx2);padding:3px 10px;border-radius:20px}
+
+/* wrap */
+.wrap{max-width:680px;margin:0 auto;padding:24px 16px 60px}
+
+/* hero */
+.hero{text-align:center;padding:32px 0 24px}
+.hero h1{font-size:26px;font-weight:800;line-height:1.2}
+.hero h1 span{color:var(--acc)}
+.hero p{color:var(--tx2);margin-top:8px;font-size:14px}
+
+/* login buttons */
+.login-section{margin-bottom:24px}
+.login-title{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);margin-bottom:10px;text-align:center}
+.login-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.lbtn{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:12px 4px;cursor:pointer;text-align:center;transition:.15s}
+.lbtn:hover{border-color:var(--acc2);background:var(--surf2)}
+.lbtn .icon{font-size:20px;display:block;margin-bottom:4px}
+.lbtn .name{font-size:11px;color:var(--tx2)}
+
+/* card */
+.card{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.card-title{font-size:13px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+
+/* input */
+.inp-wrap{position:relative}
+textarea#urlInput{
+  width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:8px;
+  color:var(--tx);font-family:var(--ff);font-size:13px;padding:12px 14px;
+  resize:none;min-height:80px;line-height:1.5;
+  transition:.15s;outline:none
+}
+textarea#urlInput:focus{border-color:var(--acc2)}
+textarea#urlInput::placeholder{color:var(--tx3)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:11px 20px;border-radius:8px;border:none;cursor:pointer;
+  font-size:14px;font-weight:600;transition:.15s;width:100%;margin-top:10px}
+.btn-primary{background:var(--acc);color:#fff}
+.btn-primary:hover{background:var(--acc2)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-ghost{background:var(--surf2);border:1px solid var(--line);color:var(--tx2);margin-top:8px}
+.btn-ghost:hover{border-color:var(--acc2);color:var(--tx)}
+
+/* error */
+#errBanner{display:none;background:rgba(255,96,96,.1);border:1px solid rgba(255,96,96,.3);
+  border-radius:8px;padding:10px 14px;font-size:13px;color:var(--bad);margin-top:10px}
+
+/* result */
+#resultWrap{margin-top:16px}
+.result-card{background:var(--surf2);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.result-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.avatar{width:44px;height:44px;border-radius:50%;background:var(--acc2);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+.result-name{font-size:16px;font-weight:700}
+.result-sub{font-size:12px;color:var(--tx2);margin-top:2px}
+.fields{display:grid;gap:10px}
+.field-row{display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.field-label{color:var(--tx3)}
+.field-val{font-weight:600;text-align:right;max-width:60%;word-break:break-all}
+.token-box{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-top:14px}
+.token-label{font-size:11px;color:var(--tx3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.token-val{font-family:monospace;font-size:12px;word-break:break-all;color:var(--ok);line-height:1.6}
+.copy-row{margin-top:10px;display:flex;gap:8px}
+.btn-copy{flex:1;background:var(--surf);border:1px solid var(--line);color:var(--tx2);
+  padding:9px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;transition:.15s}
+.btn-copy:hover{border-color:var(--ok);color:var(--ok)}
+
+/* spinner */
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* step */
+.steps{display:grid;gap:10px;margin-bottom:24px}
+.step{display:flex;align-items:flex-start;gap:12px;background:var(--surf);
+  border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.step-num{width:28px;height:28px;border-radius:50%;background:var(--acc2);
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.step-text{font-size:13px;color:var(--tx2);line-height:1.5}
+.step-text strong{color:var(--tx)}
+
+/* toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:#222;border:1px solid var(--line);color:var(--tx);font-size:13px;
+  padding:9px 18px;border-radius:20px;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <div class="hbar">
+    <div class="logo">FF<span>Tools</span></div>
+    <div class="sp"></div>
+    <div class="hbadge">🔴 LIVE</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>Free Fire <span>Access Token</span><br>Generator</h1>
+    <p>Login with Garena → paste the redirect URL → get your access token</p>
+  </div>
+
+  <!-- How to use -->
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text"><strong>Login with Garena below</strong> — a new tab opens, complete login</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text"><strong>Copy the full redirect URL</strong> from your browser address bar (starts with discstore.kiosgamer.co.id)</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text"><strong>Paste it below</strong> and click Generate</div>
+    </div>
+  </div>
+
+  <!-- Login buttons -->
+  <div class="login-section">
+    <div class="login-title">Step 1 — Login with Garena</div>
+    <div class="login-grid">
+      <button class="lbtn" onclick="oauthLogin(8)">
+        <span class="icon">🔵</span><span class="name">Google</span>
+      </button>
+      <button class="lbtn" onclick="oauthLogin(3)">
+        <span class="icon">📘</span><span class="name">Facebook</span>
+      </button>
+      <button class="lbtn" onclick="oauthLogin(10)">
+        <span class="icon">🍎</span><span class="name">Apple</span>
+      </button>
+      <button class="lbtn" onclick="oauthLogin(11)">
+        <span class="icon">🐦</span><span class="name">X</span>
+      </button>
+      <button class="lbtn" onclick="oauthLogin(5)">
+        <span class="icon">🔷</span><span class="name">VK</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Paste & Generate -->
+  <div class="card">
+    <div class="card-title">Step 2 & 3 — Paste URL & Generate</div>
+    <div class="inp-wrap">
+      <textarea id="urlInput" placeholder="Paste full kiosgamer redirect URL here&#10;Example: https://discstore.kiosgamer.co.id/?eat=abc123...&region=IND&account_id=..."></textarea>
+    </div>
+    <button class="btn btn-primary" id="genBtn" onclick="generate()">
+      Generate Access Token
+    </button>
+    <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+    <div id="errBanner"></div>
+    <div id="resultWrap"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+var OAUTH_REDIRECT = "https://api.ff.garena.co.id/auth/auth/callback_n?site=https://api-discountstore.kiosgamer.gameid.garena.co.id/oauth/callback_redirect/";
+
+function oauthLogin(platform){
+  var url = "https://auth.garena.com/universal/oauth"
+    + "?platform=" + platform
+    + "&response_type=code"
+    + "&locale=en-SG"
+    + "&client_id=100067"
+    + "&redirect_uri=" + encodeURIComponent(OAUTH_REDIRECT);
+  window.open(url, "_blank");
+}
+
+function extractEat(raw){
+  raw = raw.trim();
+  var m = raw.match(/[?&]eat=([^&#\s]+)/);
+  if(m) return decodeURIComponent(m[1]);
+  if(raw.length > 30) return raw;
+  return null;
+}
+
+function generate(){
+  var raw = document.getElementById("urlInput").value.trim();
+  if(!raw){ showErr("Paste the kiosgamer redirect URL first."); return; }
+
+  var eat = extractEat(raw);
+  if(!eat){ showErr("Could not find eat= token in the URL."); return; }
+
+  var btn = document.getElementById("genBtn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Generating...';
+  hideErr();
+  document.getElementById("resultWrap").innerHTML = "";
+
+  fetch("/api/convert", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({token_input: raw})
+  })
+  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
+  .then(function(res){
+    if(!res.ok || res.data.status !== "success"){
+      showErr(res.data.detail || res.data.error || "Failed to generate token.");
+      return;
+    }
+    renderResult(res.data);
+  })
+  .catch(function(e){ showErr("Network error: " + e.message); })
+  .finally(function(){
+    btn.disabled = false;
+    btn.textContent = "Generate Access Token";
+  });
+}
+
+function renderResult(d){
+  var nick = d.nickname || "Unknown";
+  var uid  = d.account_id || "—";
+  var reg  = d.region || "—";
+  var tok  = d.access_token || "—";
+  var initial = nick.replace(/[^\x00-\x7F]/g,"").charAt(0).toUpperCase() || "F";
+
+  var html = '<div class="result-card">'
+    + '<div class="result-header">'
+    + '  <div class="avatar">' + initial + '</div>'
+    + '  <div><div class="result-name">' + esc(nick) + '</div>'
+    + '  <div class="result-sub">UID ' + esc(uid) + ' · ' + esc(reg) + '</div></div>'
+    + '</div>'
+    + '<div class="fields">'
+    + '  <div class="field-row"><span class="field-label">Account ID</span><span class="field-val">' + esc(uid) + '</span></div>'
+    + '  <div class="field-row"><span class="field-label">Region</span><span class="field-val">' + esc(reg) + '</span></div>'
+    + '</div>'
+    + '<div class="token-box">'
+    + '  <div class="token-label">Access Token</div>'
+    + '  <div class="token-val" id="tokVal">' + esc(tok) + '</div>'
+    + '</div>'
+    + '<div class="copy-row">'
+    + '  <button class="btn-copy" onclick="copyToken()">📋 Copy Token</button>'
+    + '</div></div>';
+
+  document.getElementById("resultWrap").innerHTML = html;
+  toast("✅ Token generated!");
+}
+
+function copyToken(){
+  var t = document.getElementById("tokVal");
+  if(!t) return;
+  navigator.clipboard.writeText(t.textContent)
+    .then(function(){ toast("📋 Copied!"); })
+    .catch(function(){
+      var ta = document.createElement("textarea");
+      ta.value = t.textContent;
+      ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      document.execCommand("copy"); document.body.removeChild(ta);
+      toast("📋 Copied!");
+    });
+}
+
+function clearAll(){
+  document.getElementById("urlInput").value = "";
+  document.getElementById("resultWrap").innerHTML = "";
+  hideErr();
+}
+
+function showErr(msg){
+  var el = document.getElementById("errBanner");
+  el.style.display = "block"; el.textContent = "⚠ " + msg;
+}
+function hideErr(){
+  document.getElementById("errBanner").style.display = "none";
+}
+function esc(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function toast(msg){
+  var t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(function(){ t.classList.remove("show"); }, 2200);
+}
+
+document.getElementById("urlInput").addEventListener("keydown", function(e){
+  if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); generate(); }
+});
+</script>
+</body>
+</html>
+  
